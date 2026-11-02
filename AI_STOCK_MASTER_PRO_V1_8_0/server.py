@@ -7,6 +7,7 @@ from urllib.parse import urlparse, parse_qs, quote
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 import json, os, math, time, threading
 
 CACHE = {}
@@ -16,7 +17,7 @@ SYMBOLS = {'005930.KS', '000660.KS', '035420.KS', 'NVDA', 'AAPL', 'MSFT'}
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed=urlparse(self.path)
-        if parsed.path == '/api/health': return self.send_json(200,{'service':'AI STOCK MASTER PRO','version':'V1.8.1','status':'ok'})
+        if parsed.path == '/api/health': return self.send_json(200,{'service':'AI STOCK MASTER PRO','version':'V1.9.0','status':'ok'})
         if parsed.path in ('/', '/index.html'):
             self.path='/index.html'
             return super().do_GET()
@@ -33,16 +34,24 @@ class Handler(SimpleHTTPRequestHandler):
             with urlopen(req,timeout=10) as r: payload=json.load(r)
             obj=payload['chart']['result'][0]
             timestamps=obj.get('timestamp') or []
+            tz_name=obj.get('meta',{}).get('exchangeTimezoneName','UTC')
+            try: exchange_tz=ZoneInfo(tz_name)
+            except (KeyError, ValueError): exchange_tz=timezone.utc
             quote_data=obj['indicators']['quote'][0]
             rows=[]
+            seen_dates=set()
             for i,ts in enumerate(timestamps):
-                values={k:quote_data.get(k,[None]*len(timestamps))[i] for k in ('open','high','low','close','volume')}
+                values={k:(quote_data.get(k) or [None]*len(timestamps))[i] if i<len(quote_data.get(k) or []) else None for k in ('open','high','low','close','volume')}
                 if any(v is None or not isinstance(v,(int,float)) or not math.isfinite(v) for v in values.values()):continue
                 if values['volume']<0 or values['high']<max(values['open'],values['close'],values['low']) or values['low']>min(values['open'],values['close'],values['high']):continue
                 if min(values[k] for k in ('open','high','low','close'))<=0:continue
-                rows.append({'date':datetime.fromtimestamp(ts,timezone.utc).strftime('%Y-%m-%d'),**values})
+                day=datetime.fromtimestamp(ts,exchange_tz).strftime('%Y-%m-%d')
+                if day in seen_dates: continue
+                seen_dates.add(day)
+                rows.append({'date':day,**values})
+            rows.sort(key=lambda row:row['date'])
             if len(rows)<35: raise ValueError('유효한 거래일이 35개 미만입니다.')
-            result={'symbol':symbol,'source':'Yahoo Finance 비공식 차트 API','rows':rows,'asof':datetime.now(timezone.utc).isoformat(),'cached':False}
+            result={'symbol':symbol,'source':'Yahoo Finance 비공식 차트 API','rows':rows,'asof':datetime.now(timezone.utc).isoformat(),'cached':False,'exchange_timezone':tz_name}
             with CACHE_LOCK: CACHE[symbol]=(time.monotonic(),result)
             return self.send_json(200,result)
         except Exception as e:
