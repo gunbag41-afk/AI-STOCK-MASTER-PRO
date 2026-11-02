@@ -1,12 +1,8 @@
-# AI STOCK MASTER PRO V1.9.0
+# AI STOCK MASTER PRO V1.9.1
 
-과거 주가 조회 및 검증 강화 버전입니다. 실시간 시세·실제 주문·검증된 AI 예측은 제공하지 않습니다.
+PC 차트 가독성 개선 버전. 1600px 폭 레이아웃, 거래량 축 만/억 단위, 축 라벨 간격 조정, 모바일 반응형 유지.
 
-## 배포
-GitHub 저장소의 Render Root Directory (`AI_STOCK_MASTER_PRO_V1_8_0`)에 이 폴더의 파일을 업로드하여 기존 파일을 교체하세요. **기존 Render Root Directory를 변경하지 않는 경우** 해당 경로 안에 업로드해야 합니다. Render 자동 배포를 확인하세요.
+## GitHub / Render 배포
+기존 저장소의 `AI_STOCK_MASTER_PRO_V1_8_0/` 폴더 안에 이 배포팩의 6개 파일을 **압축 해제 후** 덮어씁니다. GitHub에 ZIP 파일 자체를 업로드하지 마세요. 기존 Render Root Directory가 `AI_STOCK_MASTER_PRO_V1_8_0`이면 그대로 유지합니다.
 
-## 실행
-`python server.py` 실행 후 http://localhost:8765 에 접속합니다.
-
-## 주의
-Yahoo Finance 비공식 과거 차트 API를 사용하며 이용 제한, 가격 조정, 제공 지연이 있을 수 있습니다. 자동매매와 분리된 분석용 데이터입니다.
+`server.py`는 비공식 Yahoo Finance 과거 일봉 데이터를 사용하며 실시간 시세나 실거래 기능을 제공하지 않습니다. 외부 데이터 제공처 오류는 발생할 수 있습니다.
