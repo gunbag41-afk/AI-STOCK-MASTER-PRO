@@ -16,7 +16,7 @@ SYMBOLS = {'005930.KS', '000660.KS', '035420.KS', 'NVDA', 'AAPL', 'MSFT'}
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed=urlparse(self.path)
-        if parsed.path == '/api/health': return self.send_json(200,{'service':'AI STOCK MASTER PRO','version':'V1.8.0','status':'ok'})
+        if parsed.path == '/api/health': return self.send_json(200,{'service':'AI STOCK MASTER PRO','version':'V1.8.1','status':'ok'})
         if parsed.path in ('/', '/index.html'):
             self.path='/index.html'
             return super().do_GET()
