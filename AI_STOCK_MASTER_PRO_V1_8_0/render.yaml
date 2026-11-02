@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: ai-stock-master-pro
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    autoDeployTrigger: off
